@@ -20,6 +20,8 @@ try:
 except ImportError:
     ENABLE_PUBFILE = False
 
+from seahub.settings import ENABLE_TASKS
+
 def base(request):
     """
     Add seahub base configure to the context.
@@ -49,5 +51,6 @@ def base(request):
         'max_file_name': MAX_FILE_NAME,
         'has_file_search': HAS_FILE_SEARCH,
         'enable_pubfile': ENABLE_PUBFILE,
+        'enable_tasks': ENABLE_TASKS,
         }
 

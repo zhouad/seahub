@@ -50,3 +50,9 @@ if settings.ENABLE_PUBFILE:
         url(r'^(?P<group_id>\d+)/file/d/(?P<file_name>.+)$', group_pubfile_download, name='group_pubfile_download'),
     )
 
+if settings.ENABLE_TASKS:
+    from seahub_extra.tasks.views import group_tasks
+
+    urlpatterns += patterns('',
+        url(r'^(?P<group_id>\d+)/tasks/$', group_tasks, name='group_tasks'),
+    )
