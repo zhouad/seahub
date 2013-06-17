@@ -40,7 +40,7 @@ from seahub.wiki.models import WikiDoesNotExist, WikiPageMissing
 from seahub.utils import get_httpserver_root, show_delete_days, render_error, \
     get_file_type_and_ext, gen_file_get_url, gen_shared_link, is_file_starred, \
     get_file_contributors, get_ccnetapplet_root, render_permission_error, \
-    is_textual_file, show_delete_days, mkstemp
+    is_textual_file, show_delete_days, mkstemp, rewrite_file_get_url_to_localhost
 from seahub.utils.file_types import (IMAGE, PDF, IMAGE, DOCUMENT, MARKDOWN, \
                                          TEXT, SF)
 
@@ -102,7 +102,8 @@ def repo_file_get(raw_path, file_enc):
         encoding = file_enc
 
     try:
-        file_response = urllib2.urlopen(raw_path)
+        url = rewrite_file_get_url_to_localhost(raw_path)
+        file_response = urllib2.urlopen(url)
         content = file_response.read()
     except urllib2.HTTPError, e:
         err = _(u'HTTPError: failed to open file online')

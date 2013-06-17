@@ -250,6 +250,9 @@ REGISTRATION_SEND_MAIL = False
 # Seafile-applet address and port, used in repo download
 CCNET_APPLET_ROOT = "http://127.0.0.1:13420"
 
+# Set to True if httpserver is running on another machine
+DISABLE_REWRITE_HTTP_SERVER_ROOT = False
+
 # Account initial password, for password resetting.
 # INIT_PASSWD can either be a string, or a function (function has to be set without the brackets)
 def genpassword():

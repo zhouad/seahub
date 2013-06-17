@@ -75,7 +75,7 @@ from seahub.utils import render_permission_error, render_error, list_to_string, 
     get_file_contributors, EVENTS_ENABLED, get_user_events, get_org_user_events, \
     get_starred_files, star_file, unstar_file, is_file_starred, get_dir_starred_files, \
     get_dir_files_last_modified, show_delete_days, HtmlDiff, \
-    TRAFFIC_STATS_ENABLED, get_user_traffic_stat
+    TRAFFIC_STATS_ENABLED, get_user_traffic_stat, rewrite_file_get_url_to_localhost
 from seahub.utils.paginator import get_page_range
 
 from seahub.utils import HAS_OFFICE_CONVERTER
@@ -1078,7 +1078,8 @@ def repo_file_get(raw_path, file_enc):
         encoding = file_enc
 
     try:
-        file_response = urllib2.urlopen(raw_path)
+        url = rewrite_file_get_url_to_localhost(raw_path)
+        file_response = urllib2.urlopen(url)
         if long(file_response.headers['Content-Length']) > FILE_PREVIEW_MAX_SIZE:
             err = _(u'File size surpasses 10M, can not be previewed online.')
             return err, '', None

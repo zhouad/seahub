@@ -14,7 +14,7 @@ from seahub.utils.repo import list_dir_by_path
 from seahub.utils.slugify import slugify
 from seahub.utils import render_error, render_permission_error, string2list, \
     gen_file_get_url, get_file_type_and_ext, \
-    get_file_contributors
+    get_file_contributors, rewrite_file_get_url_to_localhost
 from seahub.utils.file_types import IMAGE
 from models import WikiPageMissing, WikiDoesNotExist, GroupWiki, PersonalWiki
 
@@ -81,7 +81,8 @@ def get_group_wiki_repo(group, username):
 def get_personal_wiki_page(username, page_name):
     repo = get_personal_wiki_repo(username)
     dirent = get_wiki_dirent(repo.id, page_name)
-    url = get_file_url(repo, dirent.obj_id, dirent.obj_name)
+    raw_path = get_file_url(repo, dirent.obj_id, dirent.obj_name)
+    url = rewrite_file_get_url_to_localhost(raw_path)
     file_response = urllib2.urlopen(url)
     content = file_response.read()
     return content, repo, dirent
@@ -89,7 +90,8 @@ def get_personal_wiki_page(username, page_name):
 def get_group_wiki_page(username, group, page_name):
     repo = get_group_wiki_repo(group, username)
     dirent = get_wiki_dirent(repo.id, page_name)
-    url = get_file_url(repo, dirent.obj_id, dirent.obj_name)
+    raw_path = get_file_url(repo, dirent.obj_id, dirent.obj_name)
+    url = rewrite_file_get_url_to_localhost(raw_path)
     file_response = urllib2.urlopen(url)
     content = file_response.read()
     return content, repo, dirent

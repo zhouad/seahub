@@ -10,6 +10,7 @@ import json
 import tempfile
 import locale
 import ConfigParser
+import urlparse
 
 import ccnet
 
@@ -34,6 +35,7 @@ from seaserv import seafserv_rpc, ccnet_threaded_rpc, seafserv_threaded_rpc, \
     list_org_repos_by_owner, get_org_groups_by_user, check_permission, \
     list_inner_pub_repos, list_org_inner_pub_repos, CCNET_CONF_PATH
 import seahub.settings
+from seahub.settings import DISABLE_REWRITE_HTTP_SERVER_ROOT
 try:
     from seahub.settings import EVENTS_CONFIG_FILE
 except ImportError:
@@ -118,6 +120,66 @@ def list_to_string(l):
 
     """
     return ','.join(l)
+
+_can_rewrite_httpserver_host = None
+def can_rewrite_httpserver_host():
+    global _can_rewrite_httpserver_host
+    if _can_rewrite_httpserver_host is not None:
+        return _can_rewrite_httpserver_host
+
+    rewrite = True
+    if DISABLE_REWRITE_HTTP_SERVER_ROOT:
+        rewrite = False
+    else:
+        # Don't rewrite if the admin has set HTTP_SERVER_ROOT in local_settings.py
+        from seaserv import HTTP_SERVER_ROOT as SEASERV_HTTP_SERVER_ROOT
+        try:
+            from seahub.settings import HTTP_SERVER_ROOT as SETTINGS_HTTP_SERVER_ROOT
+        except ImportError:
+            pass
+        else:
+            def is_same_url(a, b):
+                a = a.rstrip('/')
+                b = b.rstrip('/')
+                if a == b:
+                    return True
+                else:
+                    ra = urlparse.urlparse(a)
+                    rb = urlparse.urlparse(b)
+                    a = urlparse.urlunparse(ra)
+                    b = urlparse.urlunparse(rb)
+
+                    return a == b
+
+            if is_same_url(SETTINGS_HTTP_SERVER_ROOT, SEASERV_HTTP_SERVER_ROOT):
+                rewrite = False
+
+    _can_rewrite_httpserver_host = rewrite
+    return rewrite
+
+def rewrite_file_get_url_to_localhost(url):
+    '''Change httpserver url host to 127.0.0.1 when accessing httpserver
+    from seahub
+
+    '''
+    if not can_rewrite_httpserver_host():
+        return url
+    else:
+        # parse the url, change the host, and reconstruct the url
+        r = urlparse.urlparse(url)
+        if r.port:
+            netloc = '127.0.0.1:%s' % r.port
+        else:
+            netloc = '127.0.0.1'
+
+        parts = (r.scheme,            # scheme
+                 netloc,              # netloc
+                 r.path,              # path
+                 r.params,            # params,
+                 r.query,             # query,
+                 r.fragment)          # fragment
+
+        return urlparse.urlunparse(parts)
 
 def get_httpserver_root():
     """
