@@ -406,9 +406,6 @@ sys.path.pop(0)
 
 if 'win32' in sys.platform:
     INSTALLED_APPS += ('django_wsgiserver', )
-    fp = open(os.path.join(install_topdir, "seahub.pid"), 'w')
-    fp.write("%d\n" % os.getpid())
-    fp.close()
 
 SEAFILE_VERSION = '1.7'
 
