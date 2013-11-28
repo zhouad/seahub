@@ -51,7 +51,7 @@
                         <a href="{{ SITE_ROOT }}accounts/register/" class="top-link">{% trans "Signup" %}</a>
                             {% endif %}
                         {% endif %}
-                        <a href="#" id="lang-context" data="no-popup" data-lang="{{ LANGUAGE_CODE }}" class="top-link">{{ LANGUAGE_CODE|language_name_local }} <span class="icon-caret-down"></span></a>
+                        <a href="#" id="lang-context" data-lang="{{ LANGUAGE_CODE }}" class="top-link">{{ LANGUAGE_CODE|language_name_local }} <span class="icon-caret-down"></span></a>
                         <ul class="hide" id="lang-context-selector">
                             {% for LANG in LANGUAGES %}
                             <li><a href="{% url 'i18n' %}?lang={{ LANG.0 }}">{{ LANG.1 }}</a></li>

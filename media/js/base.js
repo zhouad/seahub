@@ -35,24 +35,26 @@ $('.checkbox-orig').click(function() {
     $(this).parent().toggleClass('checkbox-checked');
 });
 
-$('#lang-context').click(function() {
-        if ($(this).attr('data') == 'no-popup') {
-            $(this).parent().css('position', 'relative');
-            $('#lang-context-selector').removeClass('hide');
-            $(this).attr('data', 'has-popup');
-        } else {
-            $('#lang-context-selector').addClass('hide');
-            $(this).attr('data', 'no-popup');
-        }
+(function() {
+    var lang_context = $('#lang-context'),
+        lang_selector = $('#lang-context-selector');
+
+    window.onload = function() { // after the small images, icons loaded.
+        lang_selector.css({'right': lang_context.parent().width() - lang_context.position().left - lang_context.outerWidth()});
+    };
+
+    lang_context.click(function() {
+        lang_selector.toggleClass('hide');
         return false;
     }).focus(function() { $(this).blur(); });
-$(document).click(function(e) {
-    var element = e.target || e.srcElement;
-    if (element.id != 'lang-context-selector' && element.id != 'lang-context') {
-        $('#lang-context-selector').addClass('hide');
-        $('#lang-context').attr('data', 'no-popup');
-    }
-});
+
+    $(document).click(function(e) {
+        var element = e.target || e.srcElement;
+        if (element.id != 'lang-context-selector' && element.id != 'lang-context') {
+            lang_selector.addClass('hide');
+        }
+    });
+})();
 
 // clear repo enc info when log out
 $('#logout').click(function() {
