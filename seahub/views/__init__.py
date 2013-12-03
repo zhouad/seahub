@@ -81,8 +81,8 @@ from seahub.utils import render_permission_error, render_error, list_to_string, 
     TRAFFIC_STATS_ENABLED, get_user_traffic_stat
 from seahub.utils.paginator import get_page_range
 from seahub.utils.star import get_dir_starred_files
-from seahub.views.modules import get_enabled_mods_by_user, MOD_PERSONAL_WIKI, \
-    enable_mod_for_user, disable_mod_for_user, get_available_mods_by_user
+from seahub.views.modules import MOD_PERSONAL_WIKI, \
+    enable_mod_for_user, disable_mod_for_user
 from seahub.utils import HAS_OFFICE_CONVERTER
 
 if HAS_OFFICE_CONVERTER:
@@ -879,17 +879,6 @@ def myhome(request):
 
     username = request.user.username
 
-    quota = seafserv_threaded_rpc.get_user_quota(username)
-
-    quota_usage = 0
-    share_usage = 0
-    my_usage = get_user_quota_usage(username)
-    if CALC_SHARE_USAGE:
-        share_usage = get_user_share_usage(username)
-        quota_usage = my_usage + share_usage
-    else:
-        quota_usage = my_usage
-
     # Get all personal groups I joined.
     joined_groups = get_personal_groups_by_user(username)
 
@@ -916,66 +905,6 @@ def myhome(request):
     owned_repos = seafserv_threaded_rpc.list_owned_repos(username)
     calculate_repos_last_modify(owned_repos)
     owned_repos.sort(lambda x, y: cmp(y.latest_modify, x.latest_modify))
-    
-    # Personal repos others shared to me
-    in_repos = list_personal_shared_repos(username, 'to_email', -1, -1)
-    # For each group I joined... 
-    for grp in joined_groups:
-        # Get group repos, and for each group repos...
-        for r_id in get_group_repoids(grp.id):
-            # No need to list my own repo
-            if is_repo_owner(username, r_id):
-                continue
-            # Convert repo properties due to the different collumns in Repo
-            # and SharedRepo
-            r = get_repo(r_id)
-            if not r:
-                continue
-            r.repo_id = r.id
-            r.repo_name = r.name
-            r.repo_desc = r.desc
-            r.last_modified = get_repo_last_modify(r)
-            r.share_type = 'group'
-            r.user = get_repo_owner(r_id)
-            r.user_perm = check_permission(r_id, username)
-            in_repos.append(r)
-    in_repos.sort(lambda x, y: cmp(y.last_modified, x.last_modified))
-
-    # user notifications
-    grpmsg_list = []
-    grpmsg_reply_list = []
-    joined_group_ids = [x.id for x in joined_groups]
-    notes = UserNotification.objects.get_user_notifications(username, seen=False)
-    for n in notes:
-        if n.is_group_msg():
-            try:
-                group_id  = n.group_message_detail_to_dict().get('group_id')
-            except UserNotification.InvalidDetailError:
-                continue
-
-            if group_id not in joined_group_ids:
-                continue
-
-            dup = False
-            for grpmsg in grpmsg_list:
-                if grpmsg.id == group_id:
-                    dup = True
-                    break
-            if not dup:
-                grp = seaserv.get_group(group_id)
-                grpmsg_list.append(grp)
-        elif n.is_grpmsg_reply():
-            try:
-                msg_id = n.grpmsg_reply_detail_to_dict().get('msg_id')
-            except UserNotification.InvalidDetailError:
-                continue
-
-            if msg_id not in grpmsg_reply_list:
-                grpmsg_reply_list.append(msg_id)
-
-    # get nickname
-    profiles = Profile.objects.filter(user=username)
-    nickname = profiles[0].nickname if profiles else ''
 
     autocomp_groups = joined_groups
     contacts = Contact.objects.get_contacts_by_user(username)
@@ -985,22 +914,6 @@ def myhome(request):
     starred_files = UserStarredFiles.objects.get_starred_files_by_username(
         username)
 
-    traffic_stat = 0
-    if TRAFFIC_STATS_ENABLED:
-        # User's network traffic stat in this month
-        try:
-            stat = get_user_traffic_stat(username)
-        except Exception as e:
-            logger.error(e)
-            stat = None
-
-        if stat:
-            traffic_stat = stat['file_view'] + stat['file_download'] + stat['dir_download']
-
-    # get available modules(wiki, etc)
-    mods_available = get_available_mods_by_user(username)
-    mods_enabled = get_enabled_mods_by_user(username)
-
     # user guide
     need_guide = False
     if len(owned_repos) == 0:
@@ -1009,34 +922,27 @@ def myhome(request):
             UserOptions.objects.disable_user_guide(username)
 
     return render_to_response('myhome.html', {
-            "nickname": nickname,
             "owned_repos": owned_repos,
-            "quota": quota,
-            "quota_usage": quota_usage,
-            "CALC_SHARE_USAGE": CALC_SHARE_USAGE,
-            "share_usage": share_usage,
-            "my_usage": my_usage,
-            "in_repos": in_repos,
             "contacts": contacts,
-            "joined_groups": joined_groups,
             "autocomp_groups": autocomp_groups,
-            "notes": notes,
-            "grpmsg_list": grpmsg_list,
-            "grpmsg_reply_list": grpmsg_reply_list,
+            "joined_groups": joined_groups,
             "create_shared_repo": False,
             "allow_public_share": allow_public_share,
             "starred_files": starred_files,
-            "TRAFFIC_STATS_ENABLED": TRAFFIC_STATS_ENABLED,
-            "traffic_stat": traffic_stat,
-            "ENABLE_PAYMENT": getattr(settings, 'ENABLE_PAYMENT', False),
             "ENABLE_SUB_LIBRARY": ENABLE_SUB_LIBRARY,
-            "ENABLE_EVENTS": EVENTS_ENABLED,
-            "mods_enabled": mods_enabled,
-            "mods_available": mods_available,
             "need_guide": need_guide,
             "sub_lib_enabled": sub_lib_enabled,
             "sub_repos": sub_repos,
             }, context_instance=RequestContext(request))
+
+@login_required
+def activities(request):
+    if not EVENTS_ENABLED:
+        raise Http404
+    
+    return render_to_response('activities.html', {
+            }, context_instance=RequestContext(request))
+
 
 @login_required
 def client_mgmt(request):
@@ -1054,14 +960,8 @@ def client_mgmt(request):
             if i > 0 and client.repo_name == clients[i - 1].repo_name:
                 client.not_show_repo_name = True
 
-    # get available modules(wiki, etc)
-    mods_available = get_available_mods_by_user(username)
-    mods_enabled = get_enabled_mods_by_user(username)
-        
     return render_to_response('client_mgmt.html', {
             'clients': clients,
-            "mods_enabled": mods_enabled,
-            "mods_available": mods_available,
             }, context_instance=RequestContext(request))
 
 @login_required

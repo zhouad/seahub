@@ -1,0 +1,55 @@
+{% extends "myhome_base.html" %}
+{% load i18n %}
+{% block nav_myhome_class %}class="cur"{% endblock %}
+
+{% block left_panel %}
+<div class="side-tabnav">
+    <h3 class="hd">{% trans "Personal" %} <span id="enable-mods" class="icon-th fright" title="{% trans "Enable Modules" %}"></span></h3>
+    <ul class="side-tabnav-tabs">
+        <li class="tab {% block cur_my_lib %}{% endblock %}"><span class="icon-folder-close"></span><a href="{% url 'myhome' %}">{% trans "Libraries" %}</a></li>
+        {% if events_enabled %}
+        <li class="tab {% block cur_activities %}{% endblock %}"><span class="icon-rss"></span><a href="{% url 'activities' %}">{% trans "Activities" %}</a></li>
+        {% endif %}
+        <li class="tab {% block cur_clients %}{% endblock %}"><span class="icon-desktop"></span><a href="{% url 'client_mgmt' %}">{% trans "Clients" %}</a></li>
+        {% for mod in mods_enabled %}
+        {% if mod == 'personal wiki' %}
+        <li class="tab {% block cur_personal_wiki %}{% endblock %}"><span class="icon-book"></span><a href="{% url 'personal_wiki' %}">{% trans "Personal Wiki" %}</a></li>
+        {% endif %}
+        {% endfor %}
+        <li class="tab {% block cur_contacts %}{% endblock %}"><span class="icon-user"></span><a href="{% url 'contacts' %}">{% trans "Contacts" %}</a></li>
+    </ul>
+    <h3 class="hd">{% trans "Shares" %}</h3>
+    <ul class="side-tabnav-tabs">
+        <li class="tab {% block cur_share_libs %}{% endblock %}"><span class="icon-folder-close"></span><a href="{% url 'share_admin' %}">{% trans "Libraries" %}</a></li>
+        <li class="tab {% block cur_share_links %}{% endblock %}"><span class="icon-link"></span><a href="{% url 'list_shared_links' %}">{% trans "Links" %}</li>
+        <li class="tab {% block cur_share_files %}{% endblock %}"><span class="icon-file"></span><a href="{% url 'list_priv_shared_files' %}">{% trans "Files" %}</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block main_panel %}
+<form id="mods-enable-form" method="post" action="{% url 'toggle_modules' %}" class="hide">{% csrf_token%}
+    <h3>{% trans "Enable Modules"%}</h3>
+    <ul>
+    {% for mod in mods_available %}
+      {% if mod == 'personal wiki' %}
+      <li>
+      <input class="vam" type="checkbox" name="personal_wiki" {%if mod in mods_enabled%}checked {% endif%}/>
+      <span class="vam">{% trans "Personal Wiki" %}</span>
+      </li>
+      {% endif %}
+    {% endfor %}    
+    </ul>
+    <input type="submit" id="mods-enable-submit" value="{% trans "Submit"%}" class="submit"/>
+</form>
+{% endblock %}
+
+{% block extra_script %}
+<script type="text/javascript">
+$('#enable-mods').click(function() {
+    $('#mods-enable-form').modal({appendTo: "#main"});
+    $('#simplemodal-container').css('height', 'auto');
+    return false;
+});
+</script>
+{% endblock %}

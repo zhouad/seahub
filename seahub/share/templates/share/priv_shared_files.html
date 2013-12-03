@@ -1,15 +1,12 @@
-{% extends base_template %}
+{% extends "home_base.html" %}
 {% load seahub_tags i18n %}
 {% load url from future %}
 
-{% block sub_title %}{% trans "Share" %} - {% endblock %}
-{% block nav_share_class %}class="cur"{% endblock %}
+{% block sub_title %}{% trans "Files - Share" %} - {% endblock %}
 
-{% block title_panel %}
-{% include "repo/tabnav.html" with cur="private" %}
-{% endblock %}
+{% block cur_share_files %}tab-cur{% endblock %}
 
-{% block main_panel %}
+{% block right_panel %}
 {% if priv_share_in or priv_share_out %}
 <div id="tabs" class="tab-tabs">
     <ul class="tab-tabs-nav">
@@ -71,18 +68,16 @@
         {% endif %}
     </table>
     </div>
-
+</div>
 {% else%}
 <div class="empty-tips">
   <h2 class="alc">{% trans "You don't have any private shared files" %}</h2>
   <p>{% trans "You can share a single file with a registered user if you don't want to share a whole library." %}</p>
 </div>
 {% endif %}
-
-
 {% endblock %}
 
-{% block extra_script %}
+{% block extra_script %}{{block.super}}
 <script type="text/javascript">
 </script>
 {% endblock %}

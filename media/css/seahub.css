@@ -354,6 +354,40 @@ textarea:-moz-placeholder {/* for FF */
     margin-bottom:-1px;
     color:#000;
 }
+/**** side-tabnav ****/
+.side-tabnav {
+   /* border-right:1px solid #ddd;*/
+}
+.side-tabnav .hd {
+    border-bottom:1px solid #ddd;
+}
+.side-tabnav-tabs .tab {
+    padding:6px 0;
+    border:1px solid transparent;
+    border-right:0;
+}
+.side-tabnav-tabs .tab span {
+margin-right:3px;
+}
+.side-tabnav-tabs .tab a {
+    color:#333;
+    font-weight:normal;
+}
+.side-tabnav-tabs .tab-cur {
+/*
+    border-color:#ddd;
+    background:#fff;
+    margin-right:-1px;
+    border-top-left-radius:3px;
+    border-bottom-left-radius:3px;
+*/
+}
+.side-tabnav-tabs .tab-cur,
+.side-tabnav-tabs .tab-cur a {
+    color:#dd4b39;
+    /*color:#333;*/
+font-weight:bold;
+}
 /**** checkbox ****/
 .checkbox-orig {
     font-size:0;
@@ -736,13 +770,12 @@ textarea:-moz-placeholder {/* for FF */
     margin-bottom:0.45em;
 }
 #left-panel {
-    float:right;
-    width:230px;
-    padding-left:10px;
+    float:left;
+    width:200px;
 }
 #right-panel {
-    float:left;
-    width:670px;
+    float:right;
+    width:700px;
 }
 #right-panel h3:first-child,
 #left-panel h3:first-child {
@@ -862,7 +895,8 @@ textarea:-moz-placeholder {/* for FF */
 .top-bar-con .icon-signout {
     font-size:15px;
 }
-#send-msg-popup {
+#send-msg-popup,
+#user-info-popup {
     width:430px;
     padding:18px;
     background:#fff;
@@ -872,6 +906,11 @@ textarea:-moz-placeholder {/* for FF */
     right:0;
     top:-24px;
     z-index:100;/* for pages with jquery tabs*/
+}
+#user-info-popup {
+    width:300px;
+    text-align:left;
+    top:24px;
 }
 #msg-file-share {
     margin-top:8px;
@@ -1030,20 +1069,6 @@ textarea:-moz-placeholder {/* for FF */
     display:inline-block;
     margin-top:6px;
 }
-.mygroup {
-    display:inline-block; /*to handle different height of items*/
-    vertical-align:top;
-    width:64px;
-    text-align:center;
-    margin:8px 1px 5px 1px;
-}
-.mygroup {
-    *display:inline; /* for ie 6,7 */
-}
-.mygroup .name {
-    display:inline-block;
-    width:100%;
-}
 #repo-create-form {
     padding:0 20px;
 }
@@ -1122,7 +1147,6 @@ textarea:-moz-placeholder {/* for FF */
 /* avatar */
 .avatar-op .avatar,
 .home-profile .avatar,
-.mygroup .avatar,
 .group .avatar {
 	border-radius: 4px;
 	-moz-border-radius: 4px;
@@ -2308,6 +2332,9 @@ textarea:-moz-placeholder {/* for FF */
 .wiki-nav .link {
     font-weight:normal;
 }
+.wiki-nav .cur-item .link {
+    color:#333;
+}
 #wiki-area {
     padding: 0 0;
 }
@@ -2476,7 +2503,7 @@ textarea:-moz-placeholder {/* for FF */
 }
 #enable-mods:hover {
     color:#666;
-    text-decoration:none;
+    cursor:pointer;
 }
 #add-msg .icon-pencil {
     font-size:1em;
