@@ -79,7 +79,7 @@
                 <td>
                     <div class="share-permission">
                         <span class="share-permission-cur-value">{{ repo.share_permission }}</span>
-                        <img src="{{MEDIA_URL}}img/edit_12.png" alt="{% trans "Edit"%}" title="{% trans "Edit"%}" class="share-permission-edit-icon cspt vh" />
+                        <img src="{{MEDIA_URL}}img/edit_12.png" alt="{% trans "Edit"%}" title="{% trans "Edit"%}" class="share-permission-edit-icon op-icon vh" />
                     </div>
                     <select name="permission" class="share-permission-select hide">
                         <option value="{{ repo.props.permission }}" selected="selected">{{ repo.share_permission }}</option>
@@ -93,16 +93,16 @@
                 <td>{{ repo.props.repo_desc }}</td>
                 <td>
                   {% if repo.props.share_type == 'group' %}
-                  <a href="#" data="{% url 'repo_remove_share' %}?repo_id={{ repo.props.repo_id }}&from={{ request.user.username|urlencode }}&gid={{ repo.props.group_id }}" class="cancel-share op">{% trans "Unshare"%}</a>
-              {% endif %}
+                  <a href="#" data="{% url 'repo_remove_share' %}?repo_id={{ repo.props.repo_id }}&from={{ request.user.username|urlencode }}&gid={{ repo.props.group_id }}" class="cancel-share op vh">{% trans "Unshare"%}</a>
+                  {% endif %}
                   {% if repo.props.share_type == 'personal' %}
-                  <a href="#" data="{% url 'repo_remove_share' %}?repo_id={{ repo.props.repo_id }}&from={{ request.user.username|urlencode }}&to={{ repo.props.user|urlencode }}" class="cancel-share op">{% trans "Unshare"%}</a>
-              {% endif %}
-              {% if repo.props.share_type == 'public' %}
+                  <a href="#" data="{% url 'repo_remove_share' %}?repo_id={{ repo.props.repo_id }}&from={{ request.user.username|urlencode }}&to={{ repo.props.user|urlencode }}" class="cancel-share op vh">{% trans "Unshare"%}</a>
+                  {% endif %}
+                  {% if repo.props.share_type == 'public' %}
                   {% if not org %}
-                  <a href="#" data="{% url 'unsetinnerpub' repo.repo_id %}" class="cancel-share op">{% trans "Unshare"%}</a>
+                  <a href="#" data="{% url 'unsetinnerpub' repo.repo_id %}" class="cancel-share op vh">{% trans "Unshare"%}</a>
                   {% else %}
-                  <a href="#" data="{{ SITE_ROOT }}organizations/{{ org.url_prefix }}/innerpubrepo/unset/{{ repo.props.repo_id }}" class="cancel-share op">{% trans "Unshare"%}</a>
+                  <a href="#" data="{{ SITE_ROOT }}organizations/{{ org.url_prefix }}/innerpubrepo/unset/{{ repo.props.repo_id }}" class="cancel-share op vh">{% trans "Unshare"%}</a>
                   {% endif %}
                   {% endif %}
                 </td>
@@ -130,24 +130,8 @@
         var repo_id = $(this).parents('td').data('id');
         window.open('{{ SITE_ROOT }}seafile_access_check/?repo_id=' + e(repo_id));
     });
-    $("table tr:gt(0)").hover(
-        function() {
-            $(this).find('.op-icon').removeClass('vh');
-        },
-        function() {
-            $(this).find('.op-icon').addClass('vh');
-        }
-    );
 
 {% if out_repos %}
-$('tr:gt(0)').hover(
-    function() {
-        $(this).find('.share-permission-edit-icon').removeClass('vh');
-    },
-    function() {
-        $(this).find('.share-permission-edit-icon').addClass('vh');
-    }
-);
 $('.share-permission-edit-icon').click(function() {
     $(this).parent().addClass('hide');
     $(this).parent().next().removeClass('hide'); // show 'share-permission-select'

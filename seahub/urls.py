@@ -98,7 +98,7 @@ urlpatterns = patterns('',
     ### Misc ###
    (r'^file_upload_progress_page/$', file_upload_progress_page),
     url(r'^activities/$', activities, name='activities'),
-    (r'^events/$', events),
+    (r'^events/$', events), # ajax
     (r'^pdf_full_view/$', pdf_full_view),
     url(r'^i18n/$', i18n, name='i18n'),
     (r'^download/repo/$', repo_download),                       

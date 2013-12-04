@@ -20,14 +20,24 @@ $('.search-form').submit(function() {
     }
 });
 
-//highlight the tr when mouse hover on it
-$("table tr:gt(0), .checkbox-label").hover(
+$(".checkbox-label").hover(
 	function() {
 		$(this).addClass('hl');
 	},
 	function() {
 		$(this).removeClass('hl');
 	}
+);
+
+$("tr:gt(0)", $('table')).hover(
+    function() {
+		$(this).addClass('hl');
+        $(this).find('.op-icon, .op').removeClass('vh');
+    },  
+    function() {
+        $(this).find('.op-icon, .op').addClass('vh');
+		$(this).removeClass('hl');
+    }   
 );
 
 $('input, textarea').placeholder();

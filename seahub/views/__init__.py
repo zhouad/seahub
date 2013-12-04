@@ -935,14 +935,6 @@ def myhome(request):
             "sub_repos": sub_repos,
             }, context_instance=RequestContext(request))
 
-@login_required
-def activities(request):
-    if not EVENTS_ENABLED:
-        raise Http404
-    
-    return render_to_response('activities.html', {
-            }, context_instance=RequestContext(request))
-
 
 @login_required
 def client_mgmt(request):
@@ -1814,13 +1806,37 @@ def repo_download_dir(request, repo_id):
     return redirect(url)
 
 @login_required
+def activities(request):
+    if not EVENTS_ENABLED:
+        raise Http404
+
+    events_count = 15
+    username = request.user.username
+    start = int(request.GET.get('start', 0))
+
+    if request.cloud_mode:
+        org_id = request.GET.get('org_id')
+        events, start = get_org_user_events(org_id, username, start, events_count)
+    else:
+        events, start = get_user_events(username, start, events_count)
+    events_more = True if len(events) == events_count else False
+
+    event_groups = group_events_data(events)
+    
+    return render_to_response('activities.html', {
+        'event_groups':event_groups,
+        'events_more': events_more,
+        'new_start': start,
+            }, context_instance=RequestContext(request))
+
+@login_required
 def events(request):
     if not request.is_ajax():
         raise Http404
 
     events_count = 15
     username = request.user.username
-    start = int(request.GET.get('start', 0))
+    start = int(request.GET.get('start'))
 
     if request.cloud_mode:
         org_id = request.GET.get('org_id')

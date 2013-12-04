@@ -221,14 +221,6 @@ $(document).ready(function(){
         }
     });
 
-    $.ajax({
-        url: '{% url 'space_and_traffic' %}',
-        dataType: 'json',
-        cache: false,
-        success: function(data) {
-            $('#user-info-popup').prepend(data['html']);
-        }
-    });
 });
 
 $('#msg-count, #msg-link').click(function() {
@@ -236,7 +228,19 @@ $('#msg-count, #msg-link').click(function() {
 });
 
 $('.account .my-info').click(function() {
-    $('#user-info-popup').toggleClass('hide');
+    var popup = $('#user-info-popup');
+    if (popup.hasClass('hide')) {
+        $.ajax({
+            url: '{% url 'space_and_traffic' %}',
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                popup.prepend(data['html']).removeClass('hide');
+            }
+        });
+    } else {
+        popup.addClass('hide');
+    }
 });
 {% if has_file_search %}
     {% include 'snippets/search_js.html' %}

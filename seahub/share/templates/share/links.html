@@ -34,8 +34,8 @@
                 <td><a href="{{ SITE_ROOT }}repo/{{ fs.repo.id }}/">{{ fs.repo.name }}</a></td>
                 <td>{{ fs.view_cnt }}</td>
                 <td>
-                    <a href="#" class="op view-link" data="{{ fs.shared_link }}">{% trans "View" %}</a>
-                    <a class="op" href="{% url 'remove_shared_link' %}?t={{ fs.token }}">{% trans "Remove"%}</a>
+                    <a href="#" class="view-link op vh" data="{{ fs.shared_link }}">{% trans "View" %}</a>
+                    <a class="op vh" href="{% url 'remove_shared_link' %}?t={{ fs.token }}">{% trans "Remove"%}</a>
                 </td>
             </tr>
             {% endfor %}
@@ -65,8 +65,8 @@
                 <td><a href="{{ SITE_ROOT }}repo/{{ link.repo.id }}/">{{ link.repo.name }}</a></td>
                 <td>{{ link.view_cnt }}</td>
                 <td>
-                    <a href="#" class="op view-link" data="{{ link.shared_link }}">{% trans "View" %}</a>
-                    <a class="op" href="{% url 'remove_shared_upload_link' %}?t={{ link.token }}">{% trans "Remove"%}</a>
+                    <a href="#" class="view-link op vh" data="{{ link.shared_link }}">{% trans "View" %}</a>
+                    <a class="op vh" href="{% url 'remove_shared_upload_link' %}?t={{ link.token }}">{% trans "Remove"%}</a>
                 </td>
             </tr>
             {% endfor %}
