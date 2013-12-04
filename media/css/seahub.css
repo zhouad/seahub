@@ -834,6 +834,7 @@ font-weight:bold;
     line-height:16px;
     border-right:1px solid #aaa;
     margin-right:3px;
+    cursor:pointer;
 }
 .top-bar-con .btn {
     padding:0 6px;
@@ -851,7 +852,7 @@ font-weight:bold;
 }
 .top-bar-con .avatar {
     border-radius: 2px;
-    -moz-border-radius: 2px;
+    vertical-align:middle;
 }
 .top-bar-con .cur {
     background:#000;

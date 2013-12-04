@@ -42,10 +42,8 @@
 
                     <div class="account">
                         {% if request.user.is_authenticated %}
-                        <a href="{% url 'edit_profile' %}" class="top-link avatar-link" title="{% trans 'Profile Setting' %}">{% avatar request.user 16 %}</a> <a href="#" class="top-link my-info">{{ request.user }} <span class="icon-caret-down"></span></a>
-                        <div id="user-info-popup" class="hide">
-                            <a href="{{ SITE_ROOT }}profile/" class="a">{% trans "Profile" %}</a>
-                        </div>
+                        {% avatar request.user 16 %} <span class="my-info">{{ request.user }} <span class="icon-caret-down"></span></span>
+                        <div id="user-info-popup" class="hide"></div>
                         <button class="icon-envelope btn" data-url="{% url 'message_list' %}" title="{% trans "messages" %}" id="msg-link"></button>
                         <button class="btn" data-url="{% url 'user_notification_list' %}" id="msg-count" title="{% trans "unread notices" %}">0</button>
                         {% else %}
@@ -235,12 +233,20 @@ $('.account .my-info').click(function() {
             dataType: 'json',
             cache: false,
             success: function(data) {
-                popup.prepend(data['html']).removeClass('hide');
+                popup.html(data['html']).removeClass('hide');
             }
         });
     } else {
         popup.addClass('hide');
     }
+});
+$(document).click(function(e) {
+    var target = e.target || event.srcElement,
+        popup = $('#user-info-popup'),
+        popup_switch = $('.account .my-info');
+    if (!popup.hasClass('hide') && !popup.is(target) && !popup.find('*').is(target) && !popup_switch.is(target)) {
+        popup.addClass('hide');
+    }    
 });
 {% if has_file_search %}
     {% include 'snippets/search_js.html' %}

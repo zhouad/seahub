@@ -17,5 +17,7 @@
       {% endif %}
         
       {% if ENABLE_PAYMENT %}
-      <a href="{% url 'plan' %}" class="a" id="payment">{% trans "Payment" %}</a>
+      <a href="{% url 'plan' %}">{% trans "Payment" %}</a>
       {% endif %}
+
+      <a href="{{ SITE_ROOT }}profile/">{% trans "Settings" %}</a>
