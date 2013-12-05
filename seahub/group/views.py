@@ -461,9 +461,15 @@ def msg_reply_new(request):
 
 
 def group_info_for_pub(request, group):
+    # get available modules(wiki, etc)
+    mods_available = get_available_mods_by_group(group.id)
+    mods_enabled = get_enabled_mods_by_group(group.id)
+
     return render_to_response("group/group_info_for_pub.html", {
             "repos": [],
             "group": group,
+            "mods_enabled": mods_enabled,
+            "mods_available": mods_available,
             }, context_instance=RequestContext(request))
     
 

@@ -355,9 +355,6 @@ textarea:-moz-placeholder {/* for FF */
     color:#000;
 }
 /**** side-tabnav ****/
-.side-tabnav {
-   /* border-right:1px solid #ddd;*/
-}
 .side-tabnav .hd {
     border-bottom:1px solid #ddd;
 }
@@ -367,26 +364,18 @@ textarea:-moz-placeholder {/* for FF */
     border-right:0;
 }
 .side-tabnav-tabs .tab span {
-margin-right:3px;
+    margin-right:3px;
 }
 .side-tabnav-tabs .tab a {
     color:#333;
     font-weight:normal;
 }
-.side-tabnav-tabs .tab-cur {
-/*
-    border-color:#ddd;
-    background:#fff;
-    margin-right:-1px;
-    border-top-left-radius:3px;
-    border-bottom-left-radius:3px;
-*/
-}
 .side-tabnav-tabs .tab-cur,
 .side-tabnav-tabs .tab-cur a {
+    font-weight:bold;
     color:#dd4b39;
-    /*color:#333;*/
-font-weight:bold;
+    /*color:#fff;
+    background:#feac74;*/
 }
 /**** checkbox ****/
 .checkbox-orig {
