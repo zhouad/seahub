@@ -147,14 +147,7 @@ addConfirmTo($('.cancel-share'), {
         'title':'{% trans "Unshare Library" %}',
         'con':'{% trans "Are you sure you want to unshare %s ?" %}'
 });
-$("table tr:gt(0)").hover(
-    function() {
-        $(this).find('.op-icon').removeClass('vh');
-    },
-    function() {
-        $(this).find('.op-icon').addClass('vh');
-    }
-);
+
 $('.download').click(function() {
     var repo_id = $(this).parent().data('id');
     window.open('{{ SITE_ROOT }}seafile_access_check/?repo_id=' + e(repo_id));

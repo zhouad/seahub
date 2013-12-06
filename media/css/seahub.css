@@ -2499,3 +2499,10 @@ textarea:-moz-placeholder {/* for FF */
     font-size:1em;
     margin:0 3px 0 0;
 }
+#quit-group {
+    display:inline-block;
+    margin-top:3em;
+    font-size:12px;
+    font-weight:normal;
+    color:#888;
+}
