@@ -1655,6 +1655,7 @@ def pubuser(request):
         # Users are not allowed to see public information when in cloud mode.
         raise Http404
     else:
+        emailusers_count = seaserv.count_emailusers()
         '''paginate'''
         # Make sure page request is an int. If not, deliver first page.
         try:
