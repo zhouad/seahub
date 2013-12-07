@@ -44,7 +44,6 @@
                         {% if request.user.is_authenticated %}
                         {% avatar request.user 16 %} <span class="my-info">{{ request.user }} <span class="icon-caret-down"></span></span>
                         <div id="user-info-popup" class="hide"></div>
-                        <button class="icon-envelope btn" data-url="{% url 'message_list' %}" title="{% trans "messages" %}" id="msg-link"></button>
                         <button class="btn" data-url="{% url 'user_notification_list' %}" id="msg-count" title="{% trans "unread notices" %}">0</button>
                         {% else %}
                         <a href="{{ SITE_ROOT }}accounts/login/" class="top-link">{% trans "Log In" %}</a>
@@ -221,7 +220,7 @@ $(document).ready(function(){
 
 });
 
-$('#msg-count, #msg-link').click(function() {
+$('#msg-count').click(function() {
     location.href = $(this).data('url');
 });
 

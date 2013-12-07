@@ -354,6 +354,9 @@ textarea:-moz-placeholder {/* for FF */
     margin-bottom:-1px;
     color:#000;
 }
+.tabnav-tab-cur a {
+    color:#000;
+}
 /**** side-tabnav ****/
 .side-tabnav .hd {
     border-bottom:1px solid #ddd;
@@ -896,6 +899,9 @@ textarea:-moz-placeholder {/* for FF */
     right:0;
     top:-24px;
     z-index:100;/* for pages with jquery tabs*/
+}
+#send-msg-popup {
+    top:35px;
 }
 #user-info-popup {
     width:300px;
