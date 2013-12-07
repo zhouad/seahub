@@ -5,8 +5,8 @@
 {% block cur_grp %}tab-cur{% endblock %}
 
 {% block right_panel %}
+<h3 class="hd">{% trans "Groups" %}</h3>
 {% if groups %}
-<h3>{% trans "Groups" %}</h3>
 <ul class="group-list">
     {% for group in groups %}
     <li class="group ovhd">

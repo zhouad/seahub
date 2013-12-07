@@ -256,9 +256,12 @@ textarea:-moz-placeholder {/* for FF */
     border-radius:3px;
 }
 .empty-tips {
-    width: 60%;
-    margin: 40px auto;
-    padding-top: 20px;
+    padding: 30px 40px;
+    background-color: #FAFAFA;
+    border: solid 1px #DDD;
+    border-radius: 3px;
+    box-shadow: inset 0 0 8px #EEE;
+    margin-top:5.5em;
 }
 
 /*******ui widgets**************/
@@ -360,6 +363,13 @@ textarea:-moz-placeholder {/* for FF */
 /**** side-tabnav ****/
 .side-tabnav .hd {
     border-bottom:1px solid #ddd;
+    margin-bottom:0.4em;
+}
+.side-tabnav .hd h3 {
+    margin-bottom:0;
+}
+.side-tabnav .hd .avatar {
+    vertical-align:middle;
 }
 .side-tabnav-tabs .tab {
     padding:6px 0;
@@ -772,6 +782,21 @@ textarea:-moz-placeholder {/* for FF */
 #right-panel h3:first-child,
 #left-panel h3:first-child {
     margin-top: 0px;
+}
+#right-panel .hd {
+    border-bottom:1px solid #ddd;
+    border-radius:0; /* rm radius when 'hd' is also '.ui-corner-all' */
+    margin-bottom:1em;
+}
+#right-panel .hd h3 {
+    margin-bottom:0;
+}
+#right-panel .hd .a {
+    border:0; /* rm 'border-bottom' for cur tab */
+}
+#right-panel .hd button {
+    padding-top:2px;
+    padding-bottom:2px;
 }
 /* info-bar */
 #info-bar,
@@ -2496,6 +2521,7 @@ textarea:-moz-placeholder {/* for FF */
 }
 #enable-mods {
     color:#888;
+    margin-top:3px;
 }
 #enable-mods:hover {
     color:#666;

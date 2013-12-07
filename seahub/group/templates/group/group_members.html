@@ -4,7 +4,7 @@
 {% block cur_members %}tab-cur{%endblock%}
 
 {% block right_panel %}
-<h3>{% trans "Members" %}</h3>
+<h3 class="hd">{% trans "Members" %}</h3>
 <ul class="user-list">
     {% for m in members %}
     {% with e=m.user_name id=m.user_name|id_or_email %}

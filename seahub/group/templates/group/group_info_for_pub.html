@@ -5,6 +5,7 @@
 {% block cur_library %}tab-cur{% endblock%}
 
 {% block right_panel %}
+<h3 class="hd">{% trans "Libraries" %}</h3>
 {% if repos %}
 <table>
     <tr>
@@ -41,7 +42,7 @@
     {% endfor %}
 </table>
 {% else %}
-<div class="empty-tips" style="margin-bottom:150px;">
+<div class="empty-tips">
   <h2 class="alc">{% trans "No public library is in this group" %}</h2>
   <p>{% blocktrans %}A library can be made public in its settings page.(Not implemented yet){% endblocktrans %}</p>
 </div>

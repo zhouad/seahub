@@ -3,16 +3,10 @@
 {% load seahub_tags avatar_tags i18n %}
 
 {% block sub_title %}{% trans "Clients" %} - {% endblock %}
-
-{% block extra_style %}
-<style type="text/css">
-    table { margin-top:0; }
-</style>
-{% endblock %}
-
 {% block cur_clients %}tab-cur{% endblock %}
 
 {% block right_panel %}
+<h3 class="hd">{% trans "Clients" %}</h3>
 {% if clients %}
 <table>
     <tr>

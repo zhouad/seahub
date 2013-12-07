@@ -6,7 +6,7 @@
 {% block cur_messages %}tab-cur{% endblock %}
 
 {% block right_panel %}
-    <h3>{% blocktrans with name=to_email|email2nickname%}Messages with {{name}}{% endblocktrans %}</h3>
+<h3 class="hd">{% blocktrans with name=to_email|email2nickname%}Messages with {{name}}{% endblocktrans %}</h3>
 
 <div id="personal-msg-panel" class="msg-panel personal-msg-panel">
     {% if to_email %}

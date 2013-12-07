@@ -5,8 +5,8 @@
 {% block cur_user %}tab-cur{% endblock %}
 
 {% block right_panel %}
+<h3 class="hd">{% trans "Users" %}</h3>
 {% if users %}
-<h3>{% trans "Users" %}</h3>
 <ul class="user-list">
     {% for u in users %}
     {% with e=u.email id=u.email|id_or_email %}
