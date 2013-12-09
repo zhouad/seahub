@@ -43,7 +43,9 @@
                     <div class="account">
                         {% if request.user.is_authenticated %}
                         {% avatar request.user 16 %} <span class="my-info">{{ request.user }} <span class="icon-caret-down"></span></span>
-                        <div id="user-info-popup" class="hide"></div>
+                        <div id="user-info-popup" class="hide">
+                            <img src="{{MEDIA_URL}}img/loading-icon.gif" alt="" class="loading-tip" />
+                        </div>
                         <button class="btn" data-url="{% url 'user_notification_list' %}" id="msg-count" title="{% trans "unread notices" %}">0</button>
                         {% else %}
                         <a href="{{ SITE_ROOT }}accounts/login/" class="top-link">{% trans "Log In" %}</a>
@@ -224,21 +226,33 @@ $('#msg-count').click(function() {
     location.href = $(this).data('url');
 });
 
-$('.account .my-info').click(function() {
+(function () {
+    var my_info = $('.account .my-info');
     var popup = $('#user-info-popup');
-    if (popup.hasClass('hide')) {
-        $.ajax({
-            url: '{% url 'space_and_traffic' %}',
-            dataType: 'json',
-            cache: false,
-            success: function(data) {
-                popup.html(data['html']).removeClass('hide');
-            }
-        });
-    } else {
-        popup.addClass('hide');
-    }
-});
+
+    window.onload = function() {
+        popup.css({'right': my_info.parent().width() - my_info.position().left - my_info.outerWidth()});
+    }; 
+    my_info.click(function() {
+        var loading_tip = $('.loading-tip', popup);
+        if (popup.hasClass('hide')) {
+            popup.removeClass('hide');
+            loading_tip.removeClass('hide');
+            $.ajax({
+                url: '{% url 'space_and_traffic' %}',
+                dataType: 'json',
+                cache: false,
+                success: function(data) {
+                    loading_tip.addClass('hide');
+                    popup.html(data['html']);
+                    $('.item:first', popup).css({'border':0});
+                }
+            });
+        } else {
+            popup.addClass('hide');
+        }
+    });
+})();
 $(document).click(function(e) {
     var target = e.target || event.srcElement,
         popup = $('#user-info-popup'),
