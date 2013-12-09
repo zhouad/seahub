@@ -369,32 +369,36 @@ textarea:-moz-placeholder {/* for FF */
 .side-tabnav .hd h3 {
     margin-bottom:0;
 }
-.side-tabnav .hd .avatar {
-    vertical-align:middle;
+.side-tabnav .hd .avatar { /*for 'group'*/
+    vertical-align:top;
 }
-.side-tabnav-tabs .tab {
+.side-tabnav .hd .icon-globe { /*for 'group'*/
+    line-height:1;
+    color:#666;
+}
+.side-tabnav-tabs .tab a {
+    display:block;
     padding:3px 4px;
+    color:#333;
+    font-weight:normal;
+    border-radius:2px;
+}
+.side-tabnav-tabs .tab a:hover {
+    background:#feefb8;
+    text-decoration:none;
 }
 .side-tabnav-tabs .tab span {
     font-size:1.1em;
     color:#999;
-    vertical-align:middle;
     margin-right:5px;
 }
-.side-tabnav-tabs .tab a {
-    color:#333;
-    font-weight:normal;
-}
-.side-tabnav-tabs .tab-cur {
+.side-tabnav-tabs .tab-cur a,
+.side-tabnav-tabs .tab-cur a:hover {
     background:#feac74;
-    border-radius:2px;
 }
 .side-tabnav-tabs .tab-cur span,
 .side-tabnav-tabs .tab-cur a {
     font-weight:bold;
-    /*
-    color:#dd4b39;
-    */
     color:#fff;
 }
 /**** checkbox ****/
@@ -799,12 +803,24 @@ textarea:-moz-placeholder {/* for FF */
 #right-panel .hd h3 {
     margin-bottom:0;
 }
+#right-panel .hd .tab {
+    padding-bottom:0;
+    margin-bottom:0;
+}
 #right-panel .hd .a {
     border:0; /* rm 'border-bottom' for cur tab */
+    padding:4px 0;
+    line-height:16px; /* for ff*/
 }
 #right-panel .hd button {
+    /*
     padding-top:2px;
     padding-bottom:2px;
+    */
+    padding-top:0;
+    padding-bottom:0;
+    height:24px;
+    line-height:24px;
 }
 /* info-bar */
 #info-bar,
@@ -2350,16 +2366,20 @@ textarea:-moz-placeholder {/* for FF */
 /* wiki page */
 .wiki-top {
     text-align:right;
-    padding-bottom:8px;
+    padding-bottom:4px;
     border-bottom:1px solid #eee;
 }
 .wiki-top .op-btn {
     margin-left:3px;
+    padding-top:0;
+    padding-bottom:0;
+    height:24px;
 }
 .wiki-nav .item {
     float:left;
     font-size:15px;
-    margin:4px 5px 0 10px;
+    line-height:24px;
+    margin:0 5px 0 10px;
 }
 .wiki-nav .link {
     font-weight:normal;
@@ -2532,7 +2552,7 @@ textarea:-moz-placeholder {/* for FF */
 }
 #enable-mods {
     color:#888;
-    margin-top:3px;
+    margin-top:5px;
 }
 #enable-mods:hover {
     color:#666;
