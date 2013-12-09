@@ -223,8 +223,7 @@ input.btn-disabled:hover {/*for input*/
     background-position: 0 -15px; /* to rm background-image */
 }
 .op-list li,
-.modalCloseImg,
-.add {
+.modalCloseImg {
     background:transparent url('../img/bg.png') no-repeat scroll 0 0;
 }
 .op-list li {
@@ -233,9 +232,7 @@ input.btn-disabled:hover {/*for input*/
     background-position:0 -102px;
 }
 .add {
-    padding-left:21px;
-    background-color:#f5f5f5;
-    background-position:3px -206px;
+    margin-right:3px;
 }
 .jstree a {
     font-weight:normal;
@@ -378,7 +375,7 @@ textarea:-moz-placeholder {/* for FF */
 }
 .side-tabnav-tabs .tab a {
     display:block;
-    padding:3px 4px;
+    padding:2px 4px;
     color:#333;
     font-weight:normal;
     border-radius:2px;
@@ -388,7 +385,7 @@ textarea:-moz-placeholder {/* for FF */
     text-decoration:none;
 }
 .side-tabnav-tabs .tab span {
-    font-size:1.1em;
+    font-size:1.2em;
     color:#999;
     margin-right:5px;
 }
