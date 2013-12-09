@@ -49,9 +49,9 @@ $('.checkbox-orig').click(function() {
     var lang_context = $('#lang-context'),
         lang_selector = $('#lang-context-selector');
 
-    window.onload = function() { // after the small images, icons loaded.
+    $(window).load(function() { // after the small images, icons loaded.
         lang_selector.css({'right': lang_context.parent().width() - lang_context.position().left - lang_context.outerWidth()});
-    };
+    });
 
     lang_context.click(function() {
         lang_selector.toggleClass('hide');
