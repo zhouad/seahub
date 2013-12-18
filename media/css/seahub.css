@@ -1193,7 +1193,8 @@ textarea:-moz-placeholder {/* for FF */
 	-moz-border-radius: 4px;
 }
 .group .avatar {
-	border:7px solid #f8f8f8;
+	padding:6px;
+	background:#f8f8f8;
 	border-radius: 1000px;
 }
 .avatar-op h3 {
