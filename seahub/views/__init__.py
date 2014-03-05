@@ -80,11 +80,8 @@ from seahub.utils import render_permission_error, render_error, list_to_string, 
     gen_file_get_url, string2list, MAX_INT, IS_EMAIL_CONFIGURED, \
     gen_file_upload_url, \
     EVENTS_ENABLED, get_user_events, get_org_user_events, show_delete_days, \
-<<<<<<< HEAD
-    TRAFFIC_STATS_ENABLED, get_user_traffic_stat, new_merge_with_no_conflict
-=======
-    TRAFFIC_STATS_ENABLED, get_user_traffic_stat, is_org_context
->>>>>>> Squashed commit of the following:
+    TRAFFIC_STATS_ENABLED, get_user_traffic_stat, new_merge_with_no_conflict, \
+    is_org_context
 from seahub.utils.paginator import get_page_range
 from seahub.utils.star import get_dir_starred_files
 from seahub.views.modules import MOD_PERSONAL_WIKI, \
@@ -1063,24 +1060,6 @@ def myhome(request):
     calculate_repos_last_modify(owned_repos)
     owned_repos.sort(lambda x, y: cmp(y.latest_modify, x.latest_modify))
 
-<<<<<<< HEAD
-=======
-    # shared
-    personal_shared_repos = get_share_in_repo_list(request, -1, -1)
-    personal_shared_repos.sort(lambda x, y: cmp(y.last_modified, x.last_modified))
-
-    # group repos
-    joined_groups = get_groups_by_user(request)
-    group_repos = get_group_repos(request, joined_groups)
-    group_repos.sort(key=lambda x: x.group.group_name)
-    for i, repo in enumerate(group_repos):
-        if i == 0:
-            repo.show_group_name = True
-        else:
-            if repo.group.group_name != group_repos[i-1].group.group_name:
-                repo.show_group_name = True
-
->>>>>>> Squashed commit of the following:
     # misc
     autocomp_groups = joined_groups = request.user.joined_groups
     contacts = Contact.objects.get_contacts_by_user(username)
