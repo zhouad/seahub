@@ -13,6 +13,41 @@ class AnonymousShare(models.Model):
     anonymous_email = LowerCaseCharField(max_length=255)
     token = models.CharField(max_length=25, unique=True)
 
+class FileShareManager(models.Manager):
+    def add_file_share_link(self, username, repo_id, path):
+        """Add a share link for file.
+        
+        Arguments:
+        - `self`:
+        - `username`:
+        - `repo_id`:
+        - `path`:
+        """
+        path = normalize_file_path(path)
+        token = gen_token(max_length=10)
+        
+        fs = self.model(username=username, repo_id=repo_id, path=path,
+                        token=token, s_type='f')
+        fs.save(using=self._db)
+        return fs
+
+    def add_dir_share_link(self, username, repo_id, path):
+        """Add a share link for directory.
+        
+        Arguments:
+        - `self`:
+        - `username`:
+        - `repo_id`:
+        - `path`:
+        """
+        path = normalize_dir_path(path)
+        token = gen_token(max_length=10)
+        
+        fs = self.model(username=username, repo_id=repo_id, path=path,
+                        token=token, s_type='d')
+        fs.save(using=self._db)
+        return fs
+    
 class FileShare(models.Model):
     """
     Model used for file or dir shared link.
@@ -24,6 +59,33 @@ class FileShare(models.Model):
     ctime = models.DateTimeField(default=datetime.datetime.now)
     view_cnt = models.IntegerField(default=0)
     s_type = models.CharField(max_length=2, db_index=True, default='f') # `f` or `d`
+    objects = FileShareManager()
+
+    def is_file_share_link(self):
+        return True if self.s_type == 'f' else False
+
+    def is_dir_share_link():
+        return False if self.is_file_link() else True
+        
+class OrgFileShareManager(models.Manager):
+    def set_org_file_share(self, org_id, file_share):
+        """Set a share link as org share link.
+        
+        Arguments:
+        - `org_id`:
+        - `file_share`:
+        """
+        ofs = self.model(org_id=org_id, file_share=file_share)
+        ofs.save(using=self._db)
+        return ofs
+        
+class OrgFileShare(models.Model):
+    """
+    Model used for organization file or dir shared link.
+    """
+    org_id = models.IntegerField(db_index=True)
+    file_share = models.OneToOneField(FileShare)
+    objects = OrgFileShareManager()
 
 class UploadLinkShare(models.Model):
     """

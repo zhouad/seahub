@@ -6,6 +6,8 @@ and returns a dictionary to add to the context.
 These are referenced from the setting TEMPLATE_CONTEXT_PROCESSORS and used by
 RequestContext.
 """
+from django.core.urlresolvers import reverse
+
 from seahub.settings import SEAFILE_VERSION, SITE_TITLE, SITE_NAME, SITE_BASE, \
     ENABLE_SIGNUP, MAX_FILE_NAME, BRANDING_CSS, LOGO_PATH, LOGO_WIDTH, LOGO_HEIGHT,\
     SHOW_REPO_DOWNLOAD_BUTTON, REPO_PASSWORD_MIN_LENGTH
@@ -24,6 +26,11 @@ try:
 except ImportError:
     ENABLE_PUBFILE = False
 
+try:
+    from seahub.settings import MULTI_TENANCY
+except ImportError:
+    MULTI_TENANCY = False
+    
 def base(request):
     """
     Add seahub base configure to the context.
@@ -39,6 +46,11 @@ def base(request):
         base_template = 'myhome_base.html'
 
     username = request.user.username
+
+    if MULTI_TENANCY:
+        signup_url = reverse('choose_register')
+    else:
+        signup_url = reverse('registration_register')
 
     # get available modules(wiki, etc)
     mods_available = get_available_mods_by_user(username)
@@ -73,4 +85,6 @@ def base(request):
         'mods_available': mods_available,
         'mods_enabled': mods_enabled,
         'grps': grps,
+        'multi_tenancy': MULTI_TENANCY,
+        'signup_url': signup_url,
         }

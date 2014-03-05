@@ -18,11 +18,11 @@ import seaserv
 from seaserv import seafile_api
 from seaserv import seafserv_threaded_rpc, ccnet_threaded_rpc, \
     is_personal_repo, check_group_staff, is_org_group, get_org_id_by_group, \
-    del_org_group_repo, get_group_repos_by_owner, \
-    list_inner_pub_repos_by_owner, remove_share
+    del_org_group_repo, remove_share
 
 from forms import RepoShareForm, FileLinkShareForm, UploadLinkShareForm
-from models import FileShare, PrivateFileDirShare, UploadLinkShare
+from models import FileShare, PrivateFileDirShare, \
+    UploadLinkShare, OrgFileShare
 from signals import share_repo_to_user_successful
 # from settings import ANONYMOUS_SHARE_COOKIE_TIMEOUT
 # from tokens import anon_share_token_generator
@@ -30,13 +30,14 @@ from seahub.auth.decorators import login_required
 from seahub.base.accounts import User
 from seahub.contacts.models import Contact
 from seahub.contacts.signals import mail_sended
+from seahub.group.views import get_user_groups
 from seahub.signals import share_file_to_user_successful
 from seahub.views import validate_owner, is_registered_user
 from seahub.utils import render_permission_error, string2list, render_error, \
     gen_token, gen_shared_link, gen_shared_upload_link, gen_dir_share_link, \
     gen_file_share_link, IS_EMAIL_CONFIGURED, check_filename_with_rename, \
-    is_valid_username, send_html_email
-
+    is_valid_username, send_html_email, is_org_context, \
+    normalize_file_path, normalize_dir_path
 try:
     from seahub.settings import CLOUD_MODE
 except ImportError:
@@ -46,12 +47,33 @@ from seahub.settings import SITE_ROOT
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+########## rpc wrapper    
+def is_org_repo_owner(username, repo_id):
+    owner = seaserv.seafserv_threaded_rpc.get_org_repo_owner(repo_id)
+    return True if owner == username else False
+
+def get_org_group_repos_by_owner(org_id, username):
+    return seaserv.seafserv_threaded_rpc.get_org_group_repos_by_owner(org_id,
+                                                                      username)
+
+def list_org_inner_pub_repos_by_owner(org_id, username):
+    return seaserv.seafserv_threaded_rpc.list_org_inner_pub_repos_by_owner(
+        org_id, username)
+    
+########## functions
+
 def share_to_public(request, repo, permission):
     """Share repo to public with given permission.
     """
-    repo_id = repo.id
     try:
-        seafile_api.add_inner_pub_repo(repo_id, permission)
+        if is_org_context(request):
+            org_id = request.user.org.org_id
+            seaserv.seafserv_threaded_rpc.set_org_inner_pub_repo(
+                org_id, repo.id, permission)
+        elif request.cloud_mode:
+            return              # no share to public in cloud mode
+        else:
+            seafile_api.add_inner_pub_repo(repo_id, permission)
     except Exception, e:
         logger.error(e)
         messages.error(request, _(u'Failed to share to all members, please try again later.'))
@@ -60,14 +82,20 @@ def share_to_public(request, repo, permission):
             (reverse('share_admin'))
         messages.success(request, msg)
 
-def share_to_group(request, repo, from_user, group, permission):
+def share_to_group(request, repo, group, permission):
     """Share repo to group with given permission.
     """
     repo_id = repo.id
     group_id = group.id
     group_name = group.group_name
-    
-    if repo.id in seafile_api.get_group_repoids(group.id):
+    from_user = request.user.username
+
+    if is_org_context(request):
+        org_id = request.user.org.org_id
+        group_repo_ids = seafile_api.get_org_group_repoids(org_id, group.id)
+    else:
+        group_repo_ids = seafile_api.get_group_repoids(group.id)
+    if repo.id in group_repo_ids:
         msg = _(u'"%(repo)s" is already in group %(group)s. <a href="%(href)s">View</a>') % {
             'repo': repo.name, 'group': group.group_name,
             'href': reverse('group_info', args=[group.id])}
@@ -75,7 +103,13 @@ def share_to_group(request, repo, from_user, group, permission):
         return
 
     try:
-        seafile_api.group_share_repo(repo_id, group_id, from_user, permission)
+        if is_org_context(request):
+            org_id = request.user.org.org_id
+            seafile_api.add_org_group_repo(repo_id, org_id, group_id,
+                                           from_user, permission)
+        else:
+            seafile_api.add_group_repo(repo_id, group_id, from_user,
+                                       permission)
     except Exception, e:
         logger.error(e)
         msg = _(u'Failed to share %(repo)s to %(group)s, please try again later.') % \
@@ -86,10 +120,11 @@ def share_to_group(request, repo, from_user, group, permission):
             {'group':group_name, 'share':reverse('share_admin')}
         messages.success(request, msg)
         
-def share_to_user(request, repo, from_user, to_user, permission):
+def share_to_user(request, repo, to_user, permission):
     """Share repo to a user with given permission.
     """
     repo_id = repo.id
+    from_user = request.user.username
 
     if from_user == to_user:
         msg = _(u'You can not share libray to yourself.')
@@ -144,6 +179,7 @@ def check_user_share_quota(username, repo, users=[], groups=[]):
 
     return check_pass
 
+########## views
 @login_required
 @require_POST
 def share_repo(request):
@@ -163,56 +199,50 @@ def share_repo(request):
     email_or_group = form.cleaned_data['email_or_group']
     repo_id = form.cleaned_data['repo_id']
     permission = form.cleaned_data['permission']
-    from_email = request.user.username
 
     repo = seafile_api.get_repo(repo_id)
     if not repo:
         raise Http404
 
     # Test whether user is the repo owner.
-    if not validate_owner(request, repo_id):
+    username = request.user.username
+    if not seafile_api.is_repo_owner(username, repo_id) and \
+            not is_org_repo_owner(username, repo_id):
         msg = _(u'Only the owner of the library has permission to share it.')
         messages.error(request, msg)
         return HttpResponseRedirect(next)
-    
 
     # Parsing input values.
+    share_to_all, share_to_groups, share_to_users = False, [], []    
+    user_groups = get_user_groups(request)
     share_to_list = string2list(email_or_group)
-    share_to_all, share_to_group_names, share_to_users = False, [], []
     for share_to in share_to_list:
         if share_to == 'all':
             share_to_all = True
         elif share_to.find('@') == -1:
-            share_to_group_names.append(share_to)
+            for user_group in user_groups:
+                if user_group.group_name == share_to:
+                    share_to_groups.append(user_group)
         else:
             share_to = share_to.lower()
             if is_valid_username(share_to):
                 share_to_users.append(share_to)
 
-    share_to_groups = []
-    # get all personal groups
-    for group in request.user.joined_groups:
-        # for every group that user joined, if group name matchs,
-        # then has find the group
-        if group.group_name in share_to_group_names:
-            share_to_groups.append(group)
-
-
-    if share_to_all and not CLOUD_MODE:
+    if share_to_all:
         share_to_public(request, repo, permission)
 
-    if not check_user_share_quota(from_email, repo, users=share_to_users,
+    if not check_user_share_quota(username, repo, users=share_to_users,
                                   groups=share_to_groups):
         messages.error(request, _('Failed to share "%s", no enough quota. <a href="http://seafile.com/">Upgrade account.</a>') % repo.name)
         return HttpResponseRedirect(next)
-        
+
     for group in share_to_groups:
-        share_to_group(request, repo, from_email, group, permission)
+        share_to_group(request, repo, group, permission)
 
     for email in share_to_users:
         # Add email to contacts.
         mail_sended.send(sender=None, user=request.user.username, email=email)
-        share_to_user(request, repo, from_email, email, permission)
+        share_to_user(request, repo, email, permission)
 
     return HttpResponseRedirect(next)
 
@@ -266,77 +296,33 @@ def repo_remove_share(request):
 
     return HttpResponseRedirect(next)
 
-# @login_required
-# def share_admin(request):
-#     """
-#     List share out libraries.
-#     """
-#     username = request.user.username
+def get_group_repos_by_owner(request):
+    username = request.user.username
+    if is_org_context(request):
+        org_id = request.user.org.org_id
+        return get_org_group_repos_by_owner(org_id, username)
+    else:
+        return seaserv.get_group_repos_by_owner(username)
 
-#     shared_repos = []
+def get_inner_pub_repo_list(request):
+    username = request.user.username
+    if is_org_context(request):
+        org_id = request.user.org.org_id
+        return list_org_inner_pub_repos_by_owner(org_id, username)
+    elif request.cloud_mode:
+        return seaserv.list_inner_pub_repos_by_owner(username)
+    else:
+        return []
 
-#     # personal repos shared by this user
-#     shared_repos += list_share_repos(username, 'from_email', -1, -1)
-
-#     # repos shared to groups
-#     group_repos = get_group_repos_by_owner(username)
-#     for repo in group_repos:
-#         group = ccnet_threaded_rpc.get_group(int(repo.group_id))
-#         if not group:
-#             repo.props.user = ''
-#             continue
-#         repo.props.user = group.props.group_name
-#         repo.props.user_info = repo.group_id
-#     shared_repos += group_repos
-
-#     if not CLOUD_MODE:
-#         # public repos shared by this user
-#         pub_repos = list_inner_pub_repos_by_owner(username)
-#         for repo in pub_repos:
-#             repo.props.user = _(u'all members')
-#             repo.props.user_info = 'all'
-#         shared_repos += pub_repos
-
-#     for repo in shared_repos:
-#         if repo.props.permission == 'rw':
-#             repo.share_permission = _(u'Read-Write')
-#         elif repo.props.permission == 'r':
-#             repo.share_permission = _(u'Read-Only')
-#         else:
-#             repo.share_permission = ''
-
-#         if repo.props.share_type == 'personal':
-#             repo.props.user_info = repo.props.user
-
-#     shared_repos.sort(lambda x, y: cmp(x.repo_id, y.repo_id))
-
-#     # Repo anonymous share links
-#     # out_links = AnonymousShare.objects.filter(repo_owner=request.user.username)
-#     # for link in out_links:
-#     #     repo = get_repo(link.repo_id)
-#     #     link.repo_name = repo.name
-#     #     link.remain_time = anon_share_token_generator.get_remain_time(link.token)        
-
-#     return render_to_response('repo/share_admin.html', {
-#             "org": None,
-#             "shared_repos": shared_repos,
-#             # "out_links": out_links,
-#             }, context_instance=RequestContext(request))
-
-@login_required
-def list_shared_repos(request):
-    """
-    List personal shared repos.
-    """
+def list_share_out_repos(request):
+    shared_repos = []
     username = request.user.username
 
-    shared_repos = []
-
-    # personal repos shared from this user
+    # repos shared from this user
     shared_repos += seafile_api.get_share_out_repo_list(username, -1, -1)
 
     # repos shared to groups
-    group_repos = get_group_repos_by_owner(username)
+    group_repos = get_group_repos_by_owner(request)
     for repo in group_repos:
         group = ccnet_threaded_rpc.get_group(int(repo.group_id))
         if not group:
@@ -346,16 +332,23 @@ def list_shared_repos(request):
         repo.props.user_info = repo.group_id
     shared_repos += group_repos
 
-    if not CLOUD_MODE:
-        # public repos shared by this user
-        pub_repos = list_inner_pub_repos_by_owner(username)
-        for repo in pub_repos:
-            repo.props.user = _(u'all members')
-            repo.props.user_info = 'all'
-        shared_repos += pub_repos
+    # pub repos
+    pub_repos = get_inner_pub_repo_list(request)
+    for repo in pub_repos:
+        repo.props.user = _(u'all members')
+        repo.props.user_info = 'all'
+    shared_repos += pub_repos
 
+    return shared_repos
+
+@login_required
+def list_shared_repos(request):
+    """ List user repos shared to users/groups/public.
+    """
+    share_out_repos = list_share_out_repos(request)
+    
     out_repos = []
-    for repo in shared_repos:
+    for repo in share_out_repos:
         if repo.is_virtual:     # skip virtual repos
             continue
 
@@ -455,38 +448,11 @@ def list_priv_shared_files(request):
 @login_required
 def list_priv_shared_folders(request):
     """List private shared folders.
-    
-    Arguments:
-    - `request`:
     """
-    username = request.user.username
-
-    shared_repos = []
-
-    # personal repos shared from this user
-    shared_repos += seafile_api.get_share_out_repo_list(username, -1, -1)
-
-    # repos shared to groups
-    group_repos = get_group_repos_by_owner(username)
-    for repo in group_repos:
-        group = ccnet_threaded_rpc.get_group(int(repo.group_id))
-        if not group:
-            repo.props.user = ''
-            continue
-        repo.props.user = group.props.group_name
-        repo.props.user_info = repo.group_id
-    shared_repos += group_repos
-
-    if not CLOUD_MODE:
-        # public repos shared by this user
-        pub_repos = list_inner_pub_repos_by_owner(username)
-        for repo in pub_repos:
-            repo.props.user = _(u'all members')
-            repo.props.user_info = 'all'
-        shared_repos += pub_repos
+    share_out_repos = list_share_out_repos(request)
 
     shared_folders = []
-    for repo in shared_repos:
+    for repo in share_out_repos:
         if not repo.is_virtual:     # skip non-virtual repos
             continue
 
@@ -527,6 +493,8 @@ def view_priv_shared_folder(request, repo_id):
     
 @login_required
 def share_permission_admin(request):
+    """Change repo share permission in ShareAdmin.
+    """
     share_type = request.GET.get('share_type', '')
     content_type = 'application/json; charset=utf-8'
     
@@ -544,25 +512,42 @@ def share_permission_admin(request):
                                 content_type=content_type)
             
         try:
-            seafserv_threaded_rpc.set_share_permission(repo_id, from_email, email_or_group, permission)
-        except:
-            return HttpResponse(json.dumps({'success': False}), status=500, content_type=content_type)
-        return HttpResponse(json.dumps({'success': True}), content_type=content_type)
+            seafile_api.set_share_permission(repo_id, from_email,
+                                             email_or_group, permission)
+        except SearpcError:
+            return HttpResponse(json.dumps({'success': False}), status=500,
+                                content_type=content_type)
+        return HttpResponse(json.dumps({'success': True}),
+                            content_type=content_type)
 
-    if share_type == 'group':
+    elif share_type == 'group':
         try:
-            seafserv_threaded_rpc.set_group_repo_permission(int(email_or_group), repo_id, permission)
-        except:
-            return HttpResponse(json.dumps({'success': False}), status=500, content_type=content_type)
-        return HttpResponse(json.dumps({'success': True}), content_type=content_type)
+            seafile_api.set_group_repo_permission(int(email_or_group),
+                                                  repo_id, permission)
+        except SearpcError:
+            return HttpResponse(json.dumps({'success': False}), status=500,
+                                content_type=content_type)
+        return HttpResponse(json.dumps({'success': True}),
+                            content_type=content_type)
 
-    if share_type == 'public':
-        try:
-            seafserv_threaded_rpc.set_inner_pub_repo(repo_id, permission)
-        except:
-            return HttpResponse(json.dumps({'success': False}), status=500, content_type=content_type)
-        return HttpResponse(json.dumps({'success': True}), content_type=content_type)
+    elif share_type == 'public':
+        try:        
+            if is_org_context(request):
+                org_id = request.user.org.org_id
+                seaserv.seafserv_threaded_rpc.set_org_inner_pub_repo(
+                    org_id, repo_id, permission)
+            else:
+                seafile_api.add_inner_pub_repo(repo_id, permission)
+        except SearpcError:
+            return HttpResponse(json.dumps({'success': False}), status=500,
+                                content_type=content_type)
+        return HttpResponse(json.dumps({'success': True}),
+                            content_type=content_type)
 
+    else:
+        return HttpResponse(json.dumps({'success': False}), status=400,
+                            content_type=content_type)
+        
 # 2 views for anonymous share:
 # - anonymous_share records share infomation to db and sends the mail
 # - anonymous_share_confirm checks the link use clicked and
@@ -655,7 +640,8 @@ def get_shared_link(request):
         raise Http404
     
     content_type = 'application/json; charset=utf-8'
-    
+    username = request.user.username
+
     repo_id = request.GET.get('repo_id', '')
     share_type = request.GET.get('type', 'f') # `f` or `d`
     path = request.GET.get('p', '')
@@ -663,44 +649,41 @@ def get_shared_link(request):
         err = _('Invalid arguments')
         data = json.dumps({'error': err})
         return HttpResponse(data, status=400, content_type=content_type)
-    
+
     if share_type == 'f':
-        if path[-1] == '/':     # cut out last '/' at end of path
-            path = path[:-1]
+        path = normalize_file_path(path)
     else:
         if path == '/':         # can not share root dir
             err = _('You cannot share the library in this way.')
             data = json.dumps({'error': err})
             return HttpResponse(data, status=400, content_type=content_type)
         else:
-            if path[-1] != '/': # append '/' at end of path
-                path += '/'
+            path = normalize_dir_path(path)
 
     l = FileShare.objects.filter(repo_id=repo_id).filter(
-        username=request.user.username).filter(path=path)
+        username=username).filter(path=path)
     if len(l) > 0:
         fs = l[0]
-        token = fs.token
     else:
-        token = gen_token(max_length=10)
-        
-        fs = FileShare()
-        fs.username = request.user.username
-        fs.repo_id = repo_id
-        fs.path = path
-        fs.token = token
-        fs.s_type = 'f' if share_type == 'f' else 'd'
-
         try:
-            fs.save()
+            if share_type == 'f':
+                fs = FileShare.objects.add_file_share_link(username,
+                                                           repo_id, path)
+            else:
+                fs = FileShare.objects.add_dir_share_link(username,
+                                                           repo_id, path)
+            if is_org_context(request):
+                org_id = request.user.org.org_id
+                OrgFileShare.objects.set_org_file_share(org_id, fs)
+
         except IntegrityError, e:
             err = _('Failed to get the link, please retry later.')
             data = json.dumps({'error': err})
             return HttpResponse(data, status=500, content_type=content_type)
+            
+    shared_link = gen_shared_link(fs.token, fs.s_type)
 
-    shared_link = gen_shared_link(token, fs.s_type)
-
-    data = json.dumps({'token': token, 'shared_link': shared_link})
+    data = json.dumps({'token': fs.token, 'shared_link': shared_link})
     return HttpResponse(data, status=200, content_type=content_type)
 
 @login_required
