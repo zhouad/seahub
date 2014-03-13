@@ -7,6 +7,7 @@ urlpatterns = patterns('',
     url(r'^ping/$', Ping.as_view()),
     url(r'^auth/ping/$', AuthPing.as_view()),
     url(r'^auth-token/', ObtainAuthToken.as_view()),
+    url(r'^auth-token-v2/', ObtainAuthTokenV2.as_view()),
 
     # RESTful API
     url(r'^accounts/$', Accounts.as_view(), name="accounts"),

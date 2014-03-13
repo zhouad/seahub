@@ -27,7 +27,7 @@ from django.utils import timezone
 
 from models import Token
 from authentication import TokenAuthentication
-from serializers import AuthTokenSerializer, AccountSerializer
+from serializers import AuthTokenSerializer, AccountSerializer, AuthTokenV2Serializer
 from utils import is_repo_writable, is_repo_accessible
 from seahub.base.accounts import User
 from seahub.base.models import FileDiscuss, UserStarredFiles, \
@@ -127,6 +127,20 @@ class ObtainAuthToken(APIView):
         if serializer.is_valid():
             token, created = Token.objects.get_or_create(user=serializer.object['user'].username)
             return Response({'token': token.key})
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ObtainAuthTokenV2(APIView):
+    throttle_classes = (AnonRateThrottle, )
+    permission_classes = ()
+    parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.JSONParser,)
+    renderer_classes = (renderers.JSONRenderer,)
+
+    def post(self, request):
+        serializer = AuthTokenV2Serializer(data=request.DATA)
+        if serializer.is_valid():
+            token = serializer.object['token']
+            return Response({'token': token})
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -254,7 +268,6 @@ class AccountInfo(APIView):
             info['usage'] = get_user_quota_usage(email)
 
         return Response(info)
-
 
 class RegDevice(APIView):
     """Reg device for iOS push notification.
